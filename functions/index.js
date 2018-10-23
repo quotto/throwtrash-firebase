@@ -30,37 +30,33 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     const agent = new WebhookClient({ request, response });
     console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
     console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
-
-    //   function welcome(agent) {
-    //     // Get the database collection 'dialogflow' and document 'agent' and store
-    //     // the document  {entry: "<value of database entry>"} in the 'agent' document
-    //     const dialogflowAgentRef = db.collection('dialogflow').doc('agent');
-    //     return db.runTransaction(t => {
-    //       t.set(dialogflowAgentRef, {id: '1234',value:'aaaaaaa'});
-    //       return Promise.resolve('Write complete');
-    //     }).then(doc => {
-    //       agent.add(`Wrote to the Firestore database.`);
-    //     }).catch(err => {
-    //       console.log(`Error writing to Firestore: ${err}`);
-    //       agent.add(`Failed to write to the Firestore database.`);
-    //     });
-    //   }
+    console.log(JSON.stringify(request.body.originalDetectIntentRequest.payload.user));
+    const accessToken = request.body.originalDetectIntentRequest.payload.user.accessToken;
 
     function get_trashes(agent){
-        const accessToken = agent.user.accessToken;
-        db.collection('schedule').where('id','==',accessToken).get()
-        .then(snapshot => {
-            console.log(`${snapshot[0].id}:${snapshot[0].data}`);
-            const targetDay = agent.parameters.targetDay;
-            let result = 0;
-            if(PointDayValue[targetDay].type === 'date') {
-                result = Client.getEnableTrashes(snapshot[0].data,PointDayValue[targetDay].value)
-            } else {
-                result = Client.getEnableTrashesByWeekday(snapshot[0].data,PointDayValue[targetDay].value)
-            }
-            const speechOut = result.length > 0 ? `${targetDay}出せるゴミは${result.join('、')}、です。` : `${targetDay}出せるゴミはありません。`;
-            agent.add(speechOut);
-            return Promise.resolve(speecOut);
+        // const accessToken = agent.getUser().accessToken;
+        console.log(accessToken);
+        const userSchedule = db.collection('schedule').doc(accessToken);
+        return db.runTransaction(t =>{
+            return t.get(userSchedule)
+            .then(doc => {
+                const targetDay = agent.parameters.TargetDay;
+                console.log(`targetDay:${targetDay}`);
+                let result = 0;
+                if(PointDayValue[targetDay].type === 'date') {
+                    result = Client.getEnableTrashes(doc.data().data,PointDayValue[targetDay].value);
+                } else {
+                    result = Client.getEnableTrashesByWeekday(doc.data().data,PointDayValue[targetDay].value);
+                }
+                const speechOut = result.length > 0 ? `${targetDay}出せるゴミは、${result.join('、')}、です。` : `${targetDay}出せるゴミはありません。`;
+                const dt = Client.calculateJSTTime(0);
+                t.update(userSchedule,{lastused: dt});
+                return Promise.resolve(speechOut);
+            }).catch(err =>{
+                return Promise.reject(err);
+            });
+        }).then(result =>{
+            agent.add(result);
         }).catch(err => {
             console.log(err);
             agent.add('問題が発生しました。開発者へお問い合わせください。');
@@ -103,7 +99,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
     // Run the proper function handler based on the matched Dialogflow intent name
     let intentMap = new Map();
-    intentMap.set('Default Welcome Intent', welcome);
+    // intentMap.set('Default Welcome Intent', welcome);
     intentMap.set('Default Fallback Intent', fallback);
     intentMap.set('GetTrashes',get_trashes);
     // intentMap.set('your intent name here', yourFunctionHandler);

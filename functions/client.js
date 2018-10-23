@@ -19,7 +19,7 @@ const TrashType = {
 /**
 target_day: 対象とする日を特定するための値。0なら今日、1なら明日……となる。
 **/
-const calculateJSTTime = (target_day) => {
+exports.calculateJSTTime = (target_day) => {
     var localdt = new Date(); // 実行サーバのローカル時間
     var jsttime = localdt.getTime() + (localdt.getTimezoneOffset() * 60 * 1000) + JSTOffset + (60 * 24 * 60 * 1000 * target_day);
     var dt = new Date(jsttime);
@@ -33,7 +33,7 @@ access_token: ユーザーを特定するためのuuid
 weekday: 指定された曜日 0=日曜日 始まり
 **/
 exports.getEnableTrashesByWeekday = function(data,target_weekday) {
-    const dt = calculateJSTTime(0);
+    const dt = this.calculateJSTTime(0);
     const now_weekday = dt.getDay();
     let target_day = target_weekday - now_weekday;
     //1より小さい場合は翌週分
@@ -49,7 +49,7 @@ target_day: チェックするn日目。0なら今日、1なら明日......
 **/
 exports.getEnableTrashes = function(data,target_day) {
     const result = [];
-    const dt = calculateJSTTime(target_day);
+    const dt = this.calculateJSTTime(target_day);
     data.forEach((trash,index,arr) => {
         const trash_name = trash['type'] ==='other' ? trash['trash_val'] : TrashType[trash['type']];
         // const type =  trash['type']
