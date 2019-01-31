@@ -57,6 +57,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
             });
         }).then(result =>{
             agent.add(result);
+            agent.add('他に知りたいゴミ出し予定はありますか？');
         }).catch(err => {
             console.log(err);
             agent.add('問題が発生しました。開発者へお問い合わせください。');

@@ -6,13 +6,13 @@ const TrashType = {
     burn : 'もえるゴミ',
     unburn: 'もえないゴミ',
     plastic: 'プラスチック',
-    bottole: 'ビン<break time="1ms"/>カン',
+    bottole: 'ビン・カン',
     bin: 'ビン',
     can: 'カン',
     petbottle: 'ペットボトル',
     paper: '古紙',
-    resource: '<say-as interpret-as="interjection">資源ゴミ</say-as>',
-    coarse: '<say-as interpret-as="interjection">粗大ゴミ</say-as>'
+    resource: '資源ゴミ',
+    coarse: '粗大ゴミ'
 };
 
 
