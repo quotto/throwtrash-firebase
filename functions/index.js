@@ -20,7 +20,7 @@ const admin = require('firebase-admin');
 
 admin.initializeApp(functions.config().firebase);
 const db = admin.firestore();
-const app = dialogflowFirebaseFulfillment({debug: true});
+const app = dialogflow({debug: true});
 
 const PointDayValue = {
     '今日':{type:'date',value:0},
