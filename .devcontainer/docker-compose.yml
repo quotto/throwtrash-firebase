@@ -1,0 +1,9 @@
+version: "3"
+services:
+    firebase-development:
+        image: throwtrash/firebase
+        volumes:
+            - ../app:/app
+        command: /bin/sh -c "while sleep 1000; do :; done"
+        ports: 
+            - 9005:9005

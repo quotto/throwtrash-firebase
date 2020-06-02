@@ -39,14 +39,12 @@ const TrashTypeValue: any = {
     "粗大ごみ": {value: "coarse"},
 }
 
-import {Client} from "./client";
-import {TextCreator} from "./common/text-creator";
-const textCreator = new TextCreator("ja-JP");
+import {client,TrashTypeValue} from "trash-common";
 
 import {FirestoreAdapter} from "./firestore-adapter";
-import { RecentTrashDate } from './common/domain';
-import { TrashTypeValue } from 'trash-common';
-const client = new Client("Asia/Tokyo", textCreator, new FirestoreAdapter());
+
+const textCreator = new client.TextCreator("ja-JP");
+const service = new client.TrashScheduleService("Asia/Tokyo", textCreator, new FirestoreAdapter());
 
 app.intent('GetTrashes',async(conv: DialogflowConversation<unknown,unknown,Contexts>,params: any) => {
     console.info(params);
@@ -54,10 +52,10 @@ app.intent('GetTrashes',async(conv: DialogflowConversation<unknown,unknown,Conte
 
     const targetDaySlotValue: string = params['TargetDay'];
     if(conv.user.access.token) {
-        const scheduleData = await client.getTrashData(conv.user.access.token);
+        const scheduleData = await service.getTrashData(conv.user.access.token);
         if(scheduleData.response && targetDaySlotValue in PointDayValue) { 
             const pointdayValue = PointDayValue[targetDaySlotValue];
-            const enabledTrashTypeValue: TrashTypeValue[] = await client.checkEnableTrashes(scheduleData.response,pointdayValue.value);
+            const enabledTrashTypeValue: TrashTypeValue[] = await service.checkEnableTrashes(scheduleData.response,pointdayValue.value);
             const pointday = PointDayValue[targetDaySlotValue].type === "date" ? pointdayValue.value : pointdayValue.value + 3;
             const speechOut = textCreator.getPointdayResponse(pointday.toString(), enabledTrashTypeValue);
             conv.ask(speechOut + textCreator.launch_reprompt);
@@ -72,10 +70,10 @@ app.intent("GetDayByTrashType", async(conv: DialogflowConversation<unknown,unkno
     console.debug(JSON.stringify(conv));
 
     const targetTrashType: string = params.TrashType;
-    const scheduleData = await client.getTrashData(conv.user.access.token as string);
+    const scheduleData = await service.getTrashData(conv.user.access.token as string);
     if(scheduleData.response && targetTrashType in TrashTypeValue) {
         const trashType: string = TrashTypeValue[targetTrashType].value;
-        const recentDate: RecentTrashDate[] = await client.getDayByTrashType(scheduleData.response,trashType);
+        const recentDate: client.RecentTrashDate[] = await service.getDayByTrashType(scheduleData.response,trashType);
 
         const contextParams = (conv.body as GoogleCloudDialogflowV2WebhookRequest )?.queryResult?.outputContexts;
         const trashName: string = (contextParams && contextParams.length >0 && contextParams[0].parameters) ? contextParams[0].parameters["TrashType.original"] : trashType;
@@ -92,15 +90,15 @@ app.intent("GetDayByOtherTrash", async(conv: DialogflowConversation<unknown,unkn
     console.debug(JSON.stringify(conv));
 
     const targetTrashName: string = params.TrashName;
-    const scheduleData = await client.getTrashData(conv.user.access.token as string);
+    const scheduleData = await service.getTrashData(conv.user.access.token as string);
     if(scheduleData.response && targetTrashName) {
-        const recentDate: RecentTrashDate[] = await client.getDayByTrashType(scheduleData.response, "other");
+        const recentDate: client.RecentTrashDate[] = await service.getDayByTrashType(scheduleData.response, "other");
 
         const matchTask: Array<Promise<void>> = []; 
         const matchTrash: any = []; 
-        recentDate.forEach((recentTrashDate: RecentTrashDate)=>{
+        recentDate.forEach((recentTrashDate: client.RecentTrashDate)=>{
             matchTask.push(
-                client.compareTwoText(targetTrashName, recentTrashDate.key as string).then(score => {
+                service.compareTwoText(targetTrashName, recentTrashDate.key as string).then(score => {
                     if (score > 0.6) {
                         matchTrash.push({
                             recentTrashDate

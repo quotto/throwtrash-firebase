@@ -1,7 +1,7 @@
 {
   "name": "functions",
   "scripts": {
-    "build": "tsc --p tsconfig.build.json && cp -r src/common/display src/common/template_text lib/common",
+    "build": "tsc --p tsconfig.build.json",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",

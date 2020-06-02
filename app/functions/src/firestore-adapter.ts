@@ -1,6 +1,5 @@
 import admin = require('firebase-admin');
-import {TrashData} from "trash-common";
-import {DBAdapter} from "./common/db-adapter";
+import {client,TrashData} from "trash-common";
 
 const db = admin.firestore();
 import crypto = require("crypto");
@@ -8,7 +7,7 @@ import crypto = require("crypto");
 
 const TRASH_SCHEDULE_COLLECTION = "schedule";
 const ACCESS_TOKEN_COLLECTION = "throwtrash-backend-accesstoken";
-export class FirestoreAdapter implements DBAdapter {
+export class FirestoreAdapter implements client.DBAdapter {
     public getUserIDByAccessToken(access_token:string):Promise<string> {
         const hashkey = crypto.createHash("sha512").update(access_token).digest("hex");
         const accessToken = db.collection(ACCESS_TOKEN_COLLECTION).doc(hashkey);
