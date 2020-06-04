@@ -22,7 +22,7 @@
     "moment-timezone": "^0.5.31",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
-    "trash-common": "git+https://github.com/quotto/throwtrash-common-module.git"
+    "trash-common": "git+https://github.com/quotto/throwtrash-common-module.git:#2.0.0"
   },
   "devDependencies": {
     "@types/dialogflow-fulfillment": "^0.6.0",
