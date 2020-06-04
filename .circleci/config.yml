@@ -1,0 +1,51 @@
+version: 2.1
+orbs:
+  node: circleci/node@3.0.0
+jobs:
+  test:
+    executor: 
+      name: node/default
+      tag: "10.19.0"
+    steps:
+      - checkout
+      # - node/install:
+      #     node-version: "10.10.0"
+      - run: node --version
+      - node/install-packages:
+          app-dir: app/functions
+          cache-path: app/functions/node_modules
+      - run:
+          working_directory: app
+          command: |
+            echo $SERVICE_ACCOUNT_KEY > ./serviceAccountKey.json
+            echo "export GOOGLE_APPLICATION_CREDENTIALS=${CIRCLE_WORKING_DIRECTORY}/app/serviceAccountKey.json" >> $BASH_ENV
+      - run: 
+          working_directory: app/functions
+          command: |
+            npm run test
+  deploy:
+    executor: 
+      name: node/default
+      tag: "10.19.0"
+    steps:
+      - checkout
+      - node/install-packages:
+          app-dir: app/functions
+          cache-path: app/functions/node_modules
+      - deploy:
+          working_directory: app/functions
+          command: |
+            if [ ${CIRCLE_BRANCH} == "master" ]; then
+              FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_PROD
+            else
+              FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_DEV
+            fi
+            node_modules/.bin/firebase use $FIREBASE_PROJECT_ID --token ${FIREBASE_TOKEN}
+            npm run deploy -- --token ${FIREBASE_TOKEN}
+workflows:
+    test-and-deploy:
+      jobs:
+        - test
+        - deploy:
+            requires:
+              - test

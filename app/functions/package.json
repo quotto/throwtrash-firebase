@@ -5,7 +5,7 @@
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
-    "deploy": "echo \"n\n\" | firebase deploy --only functions --interactive",
+    "deploy": "echo \"n\n\" | node_modules/.bin/firebase deploy --only functions --interactive",
     "logs": "firebase functions:log",
     "test": "jest"
   },
@@ -33,6 +33,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.3",
     "firebase-functions-test": "^0.2.0",
+    "firebase-tools": "^8.4.1",
     "jest": "^26.0.1",
     "prettier": "^2.0.5",
     "ts-jest": "^26.0.0",

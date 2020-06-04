@@ -1,4 +1,4 @@
-FROM node:10
+FROM node:10.19.0
 WORKDIR /app
 RUN npm install -g firebase-tools
 ENV HOST 0.0.0.0
