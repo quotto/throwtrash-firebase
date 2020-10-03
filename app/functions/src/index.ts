@@ -58,11 +58,11 @@ app.intent('GetTrashes',async(conv: DialogflowConversation<unknown,unknown,Conte
             const enabledTrashTypeValue: TrashTypeValue[] = await service.checkEnableTrashes(scheduleData.response,pointdayValue.value);
             const pointday = PointDayValue[targetDaySlotValue].type === "date" ? pointdayValue.value : pointdayValue.value + 3;
             const speechOut = textCreator.getPointdayResponse(pointday.toString(), enabledTrashTypeValue);
-            conv.ask(speechOut + textCreator.launch_reprompt);
+            conv.ask(speechOut + textCreator.getMessage("NOTICE_CONTINUE"));
             return;
         }
     }
-    conv.ask(textCreator.unknown_error);
+    conv.ask(textCreator.getMessage("ERROR_UNKNOWN"));
 });
 
 app.intent("GetDayByTrashType", async(conv: DialogflowConversation<unknown,unknown,Contexts>, params: any)=>{
@@ -79,10 +79,10 @@ app.intent("GetDayByTrashType", async(conv: DialogflowConversation<unknown,unkno
         const trashName: string = (contextParams && contextParams.length >0 && contextParams[0].parameters) ? contextParams[0].parameters["TrashType.original"] : trashType;
         const speechOut = textCreator.getDayByTrashTypeMessage({type: trashType, name: trashName}, recentDate);
 
-        conv.ask(speechOut + textCreator.launch_reprompt);
+        conv.ask(speechOut + textCreator.getMessage("NOTICE_CONTINUE"));
         return;
     }
-    conv.ask(textCreator.unknown_error);
+    conv.ask(textCreator.getMessage("ERROR_UNKNOWN"));
 });
 
 app.intent("GetDayByOtherTrash", async(conv: DialogflowConversation<unknown,unknown,Contexts>, params: any)=>{
@@ -95,14 +95,12 @@ app.intent("GetDayByOtherTrash", async(conv: DialogflowConversation<unknown,unkn
         const recentDate: client.RecentTrashDate[] = await service.getDayByTrashType(scheduleData.response, "other");
 
         const matchTask: Array<Promise<void>> = []; 
-        const matchTrash: any = []; 
+        const matchTrash: Array<client.RecentTrashDate> = []; 
         recentDate.forEach((recentTrashDate: client.RecentTrashDate)=>{
             matchTask.push(
                 service.compareTwoText(targetTrashName, recentTrashDate.key as string).then(score => {
                     if (score > 0.6) {
-                        matchTrash.push({
-                            recentTrashDate
-                        });
+                        matchTrash.push(recentTrashDate);
                     }
                 }).catch(err=> {
                     console.error(err);
@@ -114,13 +112,13 @@ app.intent("GetDayByOtherTrash", async(conv: DialogflowConversation<unknown,unkn
         await Promise.all(matchTask);
         const speechOut = textCreator.getDayByTrashTypeMessage({type: "other", name: targetTrashName},matchTrash);
 
-        conv.ask(speechOut + textCreator.launch_reprompt);
+        conv.ask(speechOut + textCreator.getMessage("NOTICE_CONTINUE"));
         return;
     }
-    conv.ask(textCreator.unknown_error);
+    conv.ask(textCreator.getMessage("ERROR_UNKNOWN"));
 });
 app.intent('Default Fallback Intent',(conv: DialogflowConversation<unknown,unknown,Contexts>) => {
-    conv.ask(textCreator.launch_reprompt);
+    conv.ask(textCreator.getMessage("NOTICE_CONTINUE"));
 });
 
 export const throwtrashV1 = functions.region("asia-northeast1").https.onRequest(app);
